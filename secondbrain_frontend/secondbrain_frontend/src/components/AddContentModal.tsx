@@ -3,7 +3,7 @@ import { Button } from "./ui/Button";
 import { useState, useEffect, useRef } from 'react';
 import { Input } from "./ui/Input";
 import axios from "axios";
-import { BACKEND_URL } from "../config";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 import { motion } from 'framer-motion';
 
 enum ContentType {

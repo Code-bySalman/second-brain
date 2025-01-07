@@ -9,18 +9,19 @@ import { SideBar } from "../components/ui/SideBar";
 import { useContent } from "../hooks/useContent";
 import { Menu } from "react-feather";
 import axios from "axios";
-import { BACKEND_URL } from "../config";
-import { useNavigate } from "react-router-dom"; 
-import { DeleteIcon } from "../icons/delete";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+import { useNavigate } from "react-router-dom";
 import { LogOut } from "../icons/Logout";
+import { motion } from 'framer-motion';
 
 function Dashboard() {
   const [modalOpen, setModalopen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showCopiedMessage, setShowCopiedMessage] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "twitter" | "youtube">("all");
+  const [username, setUsername] = useState("");
   const content = useContent();
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
   const handleShareBrain = async () => {
     try {
@@ -68,17 +69,40 @@ function Dashboard() {
     checkAuthentication();
     const intervalId = setInterval(checkAuthentication, 5000);
     return () => clearInterval(intervalId);
-  }, [navigate]); 
+  }, [navigate]);
+
+  useEffect(() => {
+    const fetchUsername = async () => {
+      try {
+        const response = await axios.get(`${BACKEND_URL}/api/v1/content`, {
+          headers: {
+            Authorization: localStorage.getItem("token"),
+          },
+        });
+        const firstContentItem = response.data.content[0];
+        if (firstContentItem) {
+          const extractedUsername = firstContentItem.userId.username;
+          const capitalizedUsername = extractedUsername.charAt(0).toUpperCase() + extractedUsername.slice(1);
+
+          setUsername(capitalizedUsername);
+        }
+      } catch (error) {
+        console.error("Error fetching username:", error);
+      }
+    };
+
+    fetchUsername();
+  }, []);
 
   return (
     <>
       <div className="flex">
         <div
           className={`${
-            sidebarOpen ? "w-64" : "w-0" 
+            sidebarOpen ? "w-64" : "w-0"
           } transition-all duration-300 ease-in-out`}
         >
-          <SideBar setActiveTab={setActiveTab} /> 
+          <SideBar setActiveTab={setActiveTab} />
         </div>
 
         <div className="flex-1 p-4 min-h-screen bg-gray-100 border-2 relative">
@@ -89,30 +113,53 @@ function Dashboard() {
             <Menu size={24} />
           </button>
 
+        
+
           <AddContentModel
             open={modalOpen}
             onClose={() => setModalopen(false)}
           />
-          <div className="flex  gap-4 mb-4 justify-end items-center">
-            <Button
-              onClick={() => setModalopen(true)}
-              startIcon={<PlusIcon />}
-              size="md"
-              variant="primary"
-              text="Add Content"
-            />
-            <Button
-              startIcon={<ShareIcon />}
-              size="md"
-              variant="secondary"
-              text="Share Brain"
-              onClick={handleShareBrain}
-            />
-            <Button onClick={handleLogout} startIcon={<LogOut/>} size="md"variant="Welcome" text="Logout" /> 
+           <div className="flex justify-end items-center mb-4"> 
+            <div className=" top-4 right-4 mr-10 z-10 hover:cursor-pointer">
+              {username && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1 }}
+                >
+                  <span className="bg-purple-600 text-white text-lg px-4 py-2 rounded-lg hover:text-2xl">
+                    Hello! {username}
+                  </span>
+                </motion.div>
+              )}
+            </div>
+            <div className="flex gap-4"> 
+              <Button
+                onClick={() => setModalopen(true)}
+                startIcon={<PlusIcon />}
+                size="md"
+                variant="primary"
+                text="Add Content"
+              />
+              <Button
+                startIcon={<ShareIcon />}
+                size="md"
+                variant="secondary"
+                text="Share Brain"
+                onClick={handleShareBrain}
+              />
+              <Button
+                onClick={handleLogout}
+                startIcon={<LogOut />}
+                size="md"
+                variant="Welcome"
+                text="Logout"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {activeTab === "all" && 
+            {activeTab === "all" &&
               content.map((item: any) => (
                 <Card
                   key={item._id}
@@ -121,30 +168,31 @@ function Dashboard() {
                   link={item.link}
                   type={item.type}
                 />
-              ))
-            }
+              ))}
             {activeTab === "twitter" &&
-              content.filter(item => item.type === "twitter").map((item: any) => (
-                <Card
-                  key={item._id}
-                  createdAt={item.createdAt}
-                  title={item.title}
-                  link={item.link}
-                  type={item.type}
-                />
-              ))
-            }
+              content
+                .filter((item) => item.type === "twitter")
+                .map((item: any) => (
+                  <Card
+                    key={item._id}
+                    createdAt={item.createdAt}
+                    title={item.title}
+                    link={item.link}
+                    type={item.type}
+                  />
+                ))}
             {activeTab === "youtube" &&
-              content.filter(item => item.type === "youtube").map((item: any) => (
-                <Card
-                  key={item._id}
-                  createdAt={item.createdAt}
-                  title={item.title}
-                  link={item.link}
-                  type={item.type}
-                />
-              ))
-            }
+              content
+                .filter((item) => item.type === "youtube")
+                .map((item: any) => (
+                  <Card
+                    key={item._id}
+                    createdAt={item.createdAt}
+                    title={item.title}
+                    link={item.link}
+                    type={item.type}
+                  />
+                ))}
           </div>
         </div>
       </div>

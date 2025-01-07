@@ -1,7 +1,7 @@
 // SharedContent.tsx
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { BACKEND_URL } from "../config";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 import { Card } from "../components/Card";
 
 interface SharedContentProps {

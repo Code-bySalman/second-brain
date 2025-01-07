@@ -2,10 +2,10 @@
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { useRef, useState } from "react";
-import { BACKEND_URL } from "../config";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { motion } from 'framer-motion'; // Import motion
+import { motion } from 'framer-motion';
 
 const SignUp = () => {
   const usernameRef = useRef<any>();
@@ -19,7 +19,7 @@ const SignUp = () => {
     const password = passwordRef.current?.value;
 
     if (!username || !password) {
-      alert("Please enter both username and password.");
+      setError("Please enter both username and password.");
       return;
     }
 
@@ -31,13 +31,18 @@ const SignUp = () => {
         password,
       });
 
-      if (response.status === 411) {
+      if (response.status === 200) {
+        localStorage.setItem("token", response.data.token); // Store the token
         navigate("/dashboard");
       } else {
-        // Handle successful signup
+        console.error("Signup failed with status:", response.status);
       }
-    } catch (error) {
-      console.error("Sign up error:", error);
+    } catch (error: any) {
+      if (error.response && error.response.status === 403) {
+        setError("Wrong credentials");
+      } else {
+        console.error("Sign up error:", error);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -48,11 +53,11 @@ const SignUp = () => {
   };
 
   return (
-    <motion.div // Wrap the main div with motion.div
-      initial={{ opacity: 0, x: 100 }} 
-      animate={{ opacity: 1, x: 0 }}   
-      exit={{ opacity: 0, x: -100 }}  
-      transition={{ duration: 0.5 }}    
+    <motion.div
+      initial={{ opacity: 0, x: 100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -100 }}
+      transition={{ duration: 0.5 }}
       className="w-screen h-screen bg-gradient-to-br from-gray-100 to-gray-300 flex items-center justify-center"
     >
       <div className="bg-white rounded-xl shadow-lg p-8 w-96 relative">
@@ -62,13 +67,13 @@ const SignUp = () => {
         <Input reference={usernameRef} placeholder="Username" />
         <Input reference={passwordRef} placeholder="Password" type="password" />
         {error && (
-          <div className="text-red-500 text-sm text-center mt-2 absolute bottom-16">
+          <div className="text-white bg-black text-sm text-center mt-2 p-2 rounded">
             {error}
           </div>
         )}
         <div className="flex justify-center pt-4">
           {isLoading ? (
-            <div className="loader"></div> 
+            <div className="loader"></div>
           ) : (
             <Button onClick={signup} variant="primary" text="Sign Up" />
           )}
@@ -81,7 +86,7 @@ const SignUp = () => {
           Sign In here
         </div>
       </div>
-    </motion.div> // Close motion.div
+    </motion.div>
   );
 };
 
