@@ -38,7 +38,7 @@ const mongoose_1 = __importStar(require("mongoose"));
 mongoose_1.default.connect("mongodb://localhost:27017/salman");
 const UserSchema = new mongoose_1.Schema({
     username: { type: String, unique: true },
-    password: String // You should hash this in a real application
+    password: String
 });
 exports.UserModel = (0, mongoose_1.model)("User", UserSchema);
 const ContentSchema = new mongoose_1.Schema({

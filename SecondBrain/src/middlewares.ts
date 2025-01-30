@@ -1,23 +1,19 @@
-import { NextFunction, Request, Response } from "express";
-import jwt, { JwtPayload } from "jsonwebtoken";
-import { JWTPASS } from "./config";
+import jwt from 'jsonwebtoken';
+import { JWTPASS } from './config';
+//@ts-ignore
+export const userMiddleware = (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
 
-export const userMiddleware = (req: Request, res: Response, next: NextFunction) => {
-    const header = req.headers["authorization"];
-    const decoded = jwt.verify(header as string, JWTPASS)
-    if (decoded) {
-        if (typeof decoded === "string") {
-            res.status(403).json({
-                message: "You are not logged in"
-            })
-            return;    
-        }
-        //@ts-ignore
-        req.userId = (decoded as JwtPayload).id;
-        next()
-    } else {
-        res.status(403).json({
-            message: "You are not logged in"
-        })
-    }
-}
+  try {
+    const decoded = jwt.verify(token, JWTPASS);
+    //@ts-ignore
+    req.userId = decoded.id;
+    next();
+  } catch (err) {
+    console.error("JWT verification failed:", err);
+    res.status(403).json({ message: "Forbidden" });
+  }
+};

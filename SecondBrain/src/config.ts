@@ -1,1 +1,2 @@
- export const JWTPASS = "salman1234";
+ export const JWTPASS = "salman1234"
+

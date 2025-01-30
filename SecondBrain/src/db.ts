@@ -4,14 +4,17 @@ mongoose.connect("mongodb://localhost:27017/salman")
 
 const UserSchema = new Schema({
     username: {type: String, unique: true},
-    password: String // You should hash this in a real application
+    password: String 
 })
 
 export const UserModel = model("User", UserSchema);
-
-const ContentSchema = new Schema({
-    title: String,
-    link: String,
+const TaskSchema = new Schema({
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    taskDate: { type: Date, required: true },
+    deadline: { type: Date, required: true },
+    isCompleted: { type: Boolean, default: false },
+    priority: { type: String, enum: ["low", "medium", "high"], default: "medium" },
     tags: [{ type: mongoose.Types.ObjectId, ref: 'Tag' }],
     type: String,
     userId: { type: mongoose.Types.ObjectId, ref: 'User', required: true },
@@ -23,4 +26,4 @@ const LinkSchema = new Schema({
 })
 
 export const LinkModel = model("Links", LinkSchema);
-export const ContentModel = model("Content", ContentSchema);
+export const ContentModel = model("Content", TaskSchema);
